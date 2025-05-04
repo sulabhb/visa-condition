@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sulabh's Visitor Visa 8558 Calculator</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; }
+    table { width: 100%; margin-top: 1rem; border-collapse: collapse; }
+    th, td { padding: 0.5rem; border: 1px solid #ccc; text-align: center; }
+    .warning { color: red; font-weight: bold; }
+    .success { color: green; font-weight: bold; }
+    input { padding: 0.3rem; margin-right: 0.5rem; }
+    .disclaimer { margin-top: 2rem; font-size: 0.9rem; color: #555; }
+  </style>
+</head>
+<body>
+
+<h1>Sulabh's Visitor Visa 8558 Stay Calculator</h1>
+<p>Check if your total stay in any 18-month period exceeds 12 months.</p>
+
+<div>
+  <label>Entry Date: <input type="date" id="entry"></label>
+  <label>Exit Date: <input type="date" id="exit"></label>
+  <button onclick="addStay()">Add Stay Period</button>
+</div>
+
+<table id="stayTable">
+  <thead>
+    <tr>
+      <th>Entry</th>
+      <th>Exit</th>
+      <th>Days Stayed</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<div class="disclaimer">
+    <strong>Disclaimer:</strong> This tool is for informational purposes only and does not constitute professional or legal advice.
+    Please consult a <strong>registered migration agent or immigration consultant</strong> for official guidance regarding your visa conditions.
+  </div>
+
+<h2 id="totalResult"></h2>
+
+<script>
+  const stays = [];
+
+  function dateDiffInDays(start, end) {
+    const msPerDay = 24 * 60 * 60 * 1000;
+    return Math.round((end - start) / msPerDay);
+  }
+
+  function addStay() {
+    const entryInput = document.getElementById('entry');
+    const exitInput = document.getElementById('exit');
+    const entryDate = new Date(entryInput.value);
+    const exitDate = new Date(exitInput.value);
+
+    if (isNaN(entryDate) || isNaN(exitDate) || exitDate <= entryDate) {
+      alert('Please enter valid entry and exit dates.');
+      return;
+    }
+
+    stays.push({ entry: entryDate, exit: exitDate });
+
+    const daysStayed = dateDiffInDays(entryDate, exitDate);
+    const row = document.createElement('tr');
+    row.innerHTML = `<td>${entryDate.toISOString().split('T')[0]}</td>
+                     <td>${exitDate.toISOString().split('T')[0]}</td>
+                     <td>${daysStayed}</td>`;
+    document.querySelector('#stayTable tbody').appendChild(row);
+
+    updateTotalStay();
+  }
+
+  function updateTotalStay() {
+    const now = new Date();
+    const eighteenMonthsAgo = new Date();
+    eighteenMonthsAgo.setDate(now.getDate() - 548); // 18 months ≈ 548 days
+
+    let totalDays = 0;
+
+    stays.forEach(({ entry, exit }) => {
+      const overlapStart = entry < eighteenMonthsAgo ? eighteenMonthsAgo : entry;
+      const overlapEnd = exit > now ? now : exit;
+      if (overlapEnd > overlapStart) {
+        totalDays += dateDiffInDays(overlapStart, overlapEnd);
+      }
+    });
+
+    const resultEl = document.getElementById('totalResult');
+    if (totalDays > 365) {
+      resultEl.innerHTML = `⚠️ Warning: You have stayed ${totalDays} days in the past 18 months. This exceeds the 12-month (365 days) limit.`;
+      resultEl.className = 'warning';
+    } else {
+      resultEl.innerHTML = `✅ Total days stayed in the last 18 months: ${totalDays} (within the 12-month limit).`;
+      resultEl.className = 'success';
+    }
+  }
+</script>
+
+</body>
+</html>
